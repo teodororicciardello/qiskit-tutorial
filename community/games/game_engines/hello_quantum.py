@@ -1,4 +1,5 @@
-from qiskit import IBMQ, Aer
+from qiskit import IBMQ
+from qiskit import BasicAer as Aer
 from qiskit import ClassicalRegister, QuantumRegister, QuantumCircuit
 from qiskit import execute
 
@@ -17,7 +18,7 @@ except:
 class run_game():
     # Implements a puzzle, which is defined by the given inputs.
     
-    def __init__(self,initialize, success_condition, allowed_gates, vi, qubit_names, eps=0.1, backend=Aer.get_backend('qasm_simulator_py'), shots=1024,mode='circle',verbose=False):
+    def __init__(self,initialize, success_condition, allowed_gates, vi, qubit_names, eps=0.1, backend=Aer.get_backend('qasm_simulator'), shots=1024,mode='circle',verbose=False):
         """
         initialize
             List of gates applied to the initial 00 state to get the starting state of the puzzle.
@@ -37,7 +38,7 @@ class run_game():
             The two qubits are always called '0' and '1' from the programming side. But for the player, we can display different names.
         eps=0.1
             How close the expectation values need to be to the targets for success to be declared.
-        backend=Aer.get_backend('qasm_simulator_py')
+        backend=Aer.get_backend('qasm_simulator')
             Backend to be used by Qiskit to calculate expectation values (defaults to local simulator).
         shots=1024
             Number of shots used to to calculate expectation values.
@@ -172,7 +173,7 @@ class run_game():
             
             if qubit.value not in ['',description['qubit'][0],'Success!']:
                 action.options = description['action']+['Apply operation']
-
+                
         def given_action(c):
             # Action to be taken when user confirms their choice of gate and qubit.
             # This applied the command, updates the visualization and checks whether the puzzle is solved.
@@ -195,7 +196,7 @@ class run_game():
                         q01 = '0'*(qubit.value==qubit_names['0']) + '1'*(qubit.value==qubit_names['1']) + 'both'*(qubit.value=="not required")     
                         if q_gate in ['bloch','unbloch']:
                             if q_gate=='bloch':
-                                bloch[0] = int(q01)
+                                bloch[0] = q01
                             else:
                                 bloch[0] = None
                         else:
@@ -214,6 +215,7 @@ class run_game():
                     gate.options = ['Success!']
                     qubit.options = ['Success!']
                     action.options = ['Success!']
+                    plt.close(grid.fig)
                 else:
                     gate.value = description['gate'][0]  
                     qubit.options = ['']
@@ -227,9 +229,9 @@ class run_game():
 class pauli_grid():
     # Allows a quantum circuit to be created, modified and implemented, and visualizes the output in the style of 'Hello Quantum'.
 
-    def __init__(self,backend=Aer.get_backend('qasm_simulator_py'),shots=1024,mode='circle'):
+    def __init__(self,backend=Aer.get_backend('qasm_simulator'),shots=1024,mode='circle'):
         """
-        backend=Aer.get_backend('qasm_simulator_py')
+        backend=Aer.get_backend('qasm_simulator')
             Backend to be used by Qiskit to calculate expectation values (defaults to local simulator).
         shots=1024
             Number of shots used to to calculate expectation values.
@@ -259,11 +261,11 @@ class pauli_grid():
         else:
             self.colors = [(1.6/255,72/255,138/255),(132/255,177/255,236/255),(33/255,114/255,216/255)]
         
-        self.fig = plt.figure(figsize=(8,8),facecolor=self.colors[0])
+        self.fig = plt.figure(figsize=(5,5),facecolor=self.colors[0])
         self.ax = self.fig.add_subplot(111)
         plt.axis('off')
         
-        self.bottom = self.ax.text(-3,1,"",size=14,va='top',color='w')
+        self.bottom = self.ax.text(-3,1,"",size=9,va='top',color='w')
         
         self.lines = {}
         for pauli in self.box:
@@ -367,26 +369,26 @@ class pauli_grid():
                     a = ( self.box[pauli_pos][0], self.box[pauli_pos][1]+l/2 )
                     c = ( self.box[pauli_pos][0], self.box[pauli_pos][1]-l/2 )
                     b = ( (1-p)*a[0] + p*c[0] , (1-p)*a[1] + p*c[1] )
-                    lw = 12
+                    lw = 8
                     coord = (b[1] - (a[1]+c[1])/2)*1.2 + (a[1]+c[1])/2
                 elif line=='X':
                     a = ( self.box[pauli_pos][0]+l/2, self.box[pauli_pos][1] )
                     c = ( self.box[pauli_pos][0]-l/2, self.box[pauli_pos][1] )
                     b = ( (1-p)*a[0] + p*c[0] , (1-p)*a[1] + p*c[1] )
-                    lw = 14
+                    lw = 9
                     coord = (b[0] - (a[0]+c[0])/2)*1.1 + (a[0]+c[0])/2
                 else:
                     a = ( self.box[pauli_pos][0]+l/(2*np.sqrt(2)), self.box[pauli_pos][1]+l/(2*np.sqrt(2)) )
                     c = ( self.box[pauli_pos][0]-l/(2*np.sqrt(2)), self.box[pauli_pos][1]-l/(2*np.sqrt(2)) )
                     b = ( (1-p)*a[0] + p*c[0] , (1-p)*a[1] + p*c[1] )
-                    lw = 14
+                    lw = 9
                 self.lines[pauli]['w'].pop(0).remove()
                 self.lines[pauli]['b'].pop(0).remove()
                 self.lines[pauli]['w'] = plt.plot( [a[0],b[0]], [a[1],b[1]], color=(1.0,1.0,1.0), lw=lw )
                 self.lines[pauli]['b'] = plt.plot( [b[0],c[0]], [b[1],c[1]], color=(0.0,0.0,0.0), lw=lw )
                 return coord
                          
-        l = 0.95 # line length
+        l = 0.9 # line length
         r = 0.6 # circle radius
         L = 0.98*np.sqrt(2) # box height and width
         
